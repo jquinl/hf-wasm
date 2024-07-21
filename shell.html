@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="EN-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <title>hartree-fock wasm</title>
+
+    <meta name="title" content="Hartree-Fock wasm">
+    <meta name="description" content="Hartree-Fock wasm">
+    <meta name="keywords" content="raylib,quantum-chemistry,hartree-fock,wasm">
+    <meta name="viewport" content="width=device-width">
+
+    <style>
+        body { 
+          margin: 0px; 
+          overflow: hidden; 
+          background-color: black;
+        }
+        canvas {
+            padding-left: 0;
+            padding-right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+        canvas.emscripten { border: 1px ; background-color: black;}
+
+
+    </style>
+
+    </head>
+    <body>
+        <p>
+            HELLOO THIS IS A LITTLE HF INPLEMENTATION IN WASM
+        </p>
+        <canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas>
+        <p id="output" />
+        <script>
+            var Module = {
+                canvas: (function() {
+                    var canvas = document.getElementById('canvas');
+                    return canvas;
+                })()
+            };
+        </script>
+        {{{ SCRIPT }}}
+    </body>
+</html>
