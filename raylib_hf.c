@@ -1,4 +1,4 @@
-#include "hf_wasm.h"
+#include "raylib_hf.h"
 
 void hf_init(){
     return ;

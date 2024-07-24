@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <raylib.h>
 
-#include "hf_wasm.h"
+
+#include "raylib_hf.h"
 
 #define PLATFORM_WEB 1
 #if defined(PLATFORM_WEB)
