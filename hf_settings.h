@@ -21,14 +21,13 @@ typedef struct cgto
 {
     int center[3];
     prim primitives[PRIMITIVES_PER_ORBITAL];
+    int n_prim;
 } cgto;
 
 typedef struct atoms
 {
     int type;
     int pos[3];
-    cgto orbitals[ORBITALS_PER_ATOM];
-    int num_orbitals;
 } atoms;
 
 
