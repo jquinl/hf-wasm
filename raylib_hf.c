@@ -11,18 +11,18 @@ void hf_geom_render(atoms * ats, int number){
     for (int i = 0; i < number; i++)
     {
         DrawCircleGradient(
-            ats[i].pos.x * CELL_TO_WIDHT,
-            ats[i].pos.y * CELL_TO_HEIGHT,
-            (CELL_DEPTH+0.1 - ats[i].pos.z) * 10,
+            ats[i].pos[0] * CELL_TO_WIDHT,
+            ats[i].pos[1] * CELL_TO_HEIGHT,
+            (CELL_DEPTH+0.1 - ats[i].pos[2]) * 10,
             WHITE, DARKGRAY
         );
     }
     
     return ;
 };
-void scf_update(f32 dt){
+void scf_update(float dt){
     return ;
 };
-void hf_geom_update(f32 dt){
+void hf_geom_update(float dt){
     return ;
 };

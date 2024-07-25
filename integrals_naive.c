@@ -71,7 +71,7 @@ void gto_overlap(cgto * cgtos, int cgto_num, float * S){
                                     cgtos[i].primitives[k].normf * cgtos[j].primitives[l].normf;
                 }
             }
-            S[i,j] = s;
+            S[i + cgto_num * j] = s;
         }
     }
     
@@ -123,7 +123,7 @@ void gto_kinetic(cgto * cgtos, int cgto_num,float * T){
                                     cgtos[i].primitives[k].normf * cgtos[j].primitives[l].normf;
                 }
             }
-            T[i,j] = t;//Leave here
+            T[i + cgto_num * j] = t;//Leave here
         }
     }
 }
@@ -212,7 +212,124 @@ void gto_electron_nuclear(cgto * cgtos, int cgto_num, atoms * atom_array, int at
                                         cgtos[i].primitives[k].normf * cgtos[j].primitives[l].normf;
                     }
                 }
-                V[i,j] += v;//Leave here
+                V[i + cgto_num * j] += v;//Leave here
+            }
+        }
+    }
+}
+
+float theta(int l, int la, int lb, float a, float b,int r, float alpha_sum){
+    return ck(la,lb,a,b,l) * factorial(l) * pow(alpha_sum,r-l) / (factorial(r)* factorial(l-2*r));
+}
+float gfn(int lp, int lq,int rp,int rq,int i,
+            int la,int lb, int lc,int ld,
+            float pa,float pb,float qc, float qd,
+            float pq,float inv1,float inv2,float delta){
+    float g = pow(-1,i) * pow(2*delta,2*(rp+rq)) * factorial(lp+lq - 2* rp -2*rq)* pow(delta,i) *
+                pow(pq,lp+lq-2* (rp+rq+i));
+    g /= pow(4*delta,lp+lq) * factorial(i) * factorial(lp+lq-2*(rp+rq+i));
+    g *= pow(-1,lp) * theta(lp,la,lb,pa,pb,rp,1/inv1) * theta(lq,lc,ld,qc,qd,rq,1/inv2);
+    return g;
+}
+float  prim_electron_ee(prim * prim1, prim * prim2,prim * prim3, prim * prim4,
+                            int * center1, int * center2, int * center3, int * center4){
+    float l1 = prim1->l,m1 = prim1->m,n1 = prim1->n;
+    float l2 = prim2->l,m2 = prim2->m,n2 = prim2->n;
+    float l3 = prim3->l,m3 = prim3->m,n3 = prim3->n;
+    float l4 = prim4->l,m4 = prim4->m,n4 = prim4->n;
+    float alpha1 = prim1->alpha, alpha2 = prim2->alpha;
+    float alpha3 = prim3->alpha, alpha4 = prim4->alpha;
+    float inv_alpha1 = 1 /(alpha1 + alpha2);
+    float inv_alpha2 = 1 /(alpha3 + alpha4);
+    float inv_alpha = 1 /(alpha1 + alpha2 + alpha3 + alpha4);
+    float delta = 0.25 * inv_alpha1 + 0.25 * inv_alpha2;
+    //gaussian product center
+    float px = (alpha1 *  center1[0] + alpha2 * center2[0]) * (inv_alpha1);
+    float py = (alpha1 *  center1[1] + alpha2 * center2[1]) * (inv_alpha1);
+    float pz = (alpha1 *  center1[2] + alpha2 * center2[2]) * (inv_alpha1);
+    float qx = (alpha3 *  center3[0] + alpha4 * center4[0]) * (inv_alpha2);
+    float qy = (alpha3 *  center3[1] + alpha4 * center4[1]) * (inv_alpha2);
+    float qz = (alpha3 *  center3[2] + alpha4 * center4[2]) * (inv_alpha2);
+    //distances
+    float pax = px -center1[0],pbx = px-center2[0];
+    float pay = py -center1[1],pby = px-center2[1];
+    float paz = pz -center1[2],pbz = px-center2[2];
+    float qcx = qx -center3[0],qdx = qx-center4[0];
+    float qcy = qy -center3[1],qdy = qx-center4[1];
+    float qcz = qz -center3[2],qdz = qx-center4[2];
+
+    float qpdx = qx-px;
+    float qpdy = qy-py;
+    float qpdz = qz-pz;
+    float pqd2 = qpdx * qpdx + qpdy * qpdy + qpdz * qpdz;
+    //squared distance AB
+    float distx1 = center1[0] -center2[0];
+    float disty1 = center1[1] -center2[1];
+    float distz1 = center1[2] -center2[2];
+    float sq_dist1 = distx1*distx1 +disty1*disty1 +distz1*distz1;
+    float distx2 = center3[0] -center3[0];
+    float disty2 = center3[1] -center3[1];
+    float distz2 = center3[2] -center3[2];
+    float sq_dist2 = distx2*distx2 +disty2*disty2 +distz2*distz2;
+
+    float prefact = 2 * M_PI * inv_alpha1 * inv_alpha2 * sqrt(M_PI * inv_alpha);
+    prefact *= exp(-alpha1 * alpha2 * inv_alpha1 * sq_dist1); 
+    prefact *= exp(-alpha3 * alpha4 * inv_alpha2 * sq_dist2);
+    float accum = 0.0f;
+    for (int lp = 0; lp < l1 +l2; lp++){
+    for (int rp = 0; rp < (lp / 2); rp++){
+    for (int lq = 0; lq < l3 +l4; lq++){
+    for (int rq = 0; rq < (lq / 2); rq++){
+        for (int i = 0; i < (lp+lq-2*rp-2*rq); i++){
+            float gx = gfn(lp,lq,rp,rq,i,l1,l2,l3,l4,pax,pbx,qcx,qdx,qpdx,inv_alpha1,inv_alpha2,delta);
+            for (int mp = 0; mp < m1+m2 ; mp++){
+            for (int sp = 0; sp < (mp / 2) ; sp++){
+            for (int mq = 0; mq < m3+m3 ; mq++){
+            for (int sq = 0; sq < (mq / 2) ; sq++){
+                for (int j = 0; j < mp+mq-2*sp-2*sq ; j++){
+                    float gy = gfn(mp,mq,sp,sq,j,m1,m2,m3,m4,pay,pby,qcy,qdy,qpdy,inv_alpha1,inv_alpha2,delta);
+                    for (int np = 0; np < n1+n2 ; np++){
+                    for (int tp = 0; tp < (np / 2); tp++){
+                    for (int nq = 0; nq < n3+n4 ; nq++){
+                    for (int tq = 0; tq < (nq / 2) ; tq++){
+                        for (int k = 0; k < np+nq-2*tp-2*tq ; k++){
+                            float gz = gfn(np,nq,tp,tq,k,n1,n2,n3,n4,paz,pbz,qcz,qdz,qpdz,inv_alpha1,inv_alpha2,delta);
+                            int v = lp + lq + mp + mq + np + nq 
+                                - 2 *(rp + rq + sp + sq + tp + tq) - (i + j + k);
+                            float F = boys(v,pqd2 / (4*delta));
+                            accum += gx * gy * gz * F;
+                        }
+                    }}}}
+                }
+            }}}}
+        }
+    }}}}
+    return prefact * accum;
+}
+
+void gto_electron_electron(cgto * cgtos, int cgto_num, atoms * atom_array, int atom_num,float * G){
+    for (int i = 0; i < cgto_num; i++){
+        for (int j = 0; j < cgto_num; j++){
+            for (int k = 0; k < cgto_num; k++){
+                for (int l = 0; l < cgto_num; l++){
+                    float g = 0.0f;
+                    for (int ip = 0; ip < cgtos[i].n_prim; ip++){
+                        for (int jp = 0; jp < cgtos[j].n_prim; jp++){
+                            for (int kp = 0; kp < cgtos[k].n_prim; kp++){
+                                for (int lp = 0; lp < cgtos[l].n_prim; lp++){
+                                    g += prim_electron_ee(&(cgtos[i].primitives[ip]),&(cgtos[j].primitives[ip]),
+                                        &(cgtos[k].primitives[kp]),&(cgtos[l].primitives[lp]),
+                                        cgtos[i].center,cgtos[j].center,cgtos[k].center,cgtos[l].center) *
+                                        cgtos[i].primitives[ip].coeff * cgtos[j].primitives[jp].coeff *
+                                        cgtos[k].primitives[kp].coeff * cgtos[l].primitives[lp].coeff *
+                                        cgtos[i].primitives[ip].normf * cgtos[j].primitives[jp].normf * 
+                                        cgtos[k].primitives[kp].normf * cgtos[l].primitives[lp].normf ;
+                                }
+                            }
+                        }
+                    }
+                    G[i + cgto_num * (j+cgto_num * (k*cgto_num * (l+cgto_num)))] = g;
+                }
             }
         }
     }
