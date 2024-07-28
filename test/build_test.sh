@@ -1,0 +1,1 @@
+clang -Os -Wall  -I.  -L. -lm -o out/test.o  ../hf/functions.c ../hf/primitives.c ../hf/integrals_naive.c integrals_test.c
