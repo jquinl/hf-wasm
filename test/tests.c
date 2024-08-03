@@ -1,12 +1,15 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "../hf/primitives.h"
 #include "../hf/integrals_naive.h"
 #include "../hf/functions.h"
-#include <stdio.h>
-#include <string.h>
-//#include "test1_values.h"
-//#include "test2_values.h"
-//#include "test3_values.h"
-#include "test4_values.h"
+#include "../hf/rhf.h"
+
+//#include "test_values/test1_values.h"
+//#include "test_values/test2_values.h"
+//#include "test_values/test3_values.h"
+#include "test_values/test4_values.h"
 
 #define MAX_NUM_CGTO 20
 #define MAX_NUM_PRIM MAX_NUM_CGTO * 3
@@ -21,6 +24,8 @@ float Sinv[cgto_n * cgto_n];
 float T[cgto_n * cgto_n];
 float V[cgto_n * cgto_n];
 float EE[cgto_n * cgto_n * cgto_n * cgto_n];
+
+
 
 int compare_matrices(const float * M1,const float * M2, int N){
     int fail = 0;
@@ -130,6 +135,79 @@ int main(){
     if(!compare_matrices(ID,ID_test,cgto_n)){
         printf("OK\n");
     }
-   
+    float Evec[cgto_n*cgto_n];
+    float Evals[cgto_n];
+    int EPOS[cgto_n];
+    int failed = 0;
+
+    printf("-----------Eigval------------------\n");
+    matrix_eigval(S_test, cgto_n, Evec,Evals);
+    for (int i = 0; i < cgto_n; i++){
+        failed = 1;
+        for (int j = 0; j < cgto_n; j++){
+            if(fabsf(Evals[j] - Eval_test[i])< EPSILON){
+                EPOS[i] = j;
+                failed =0;
+                break;
+            }
+        }
+        if(failed){
+            break;
+        }
+    }
+    if(!failed){
+        printf("OK\n");
+    }
+    printf("-----------Eigvec------------------\n");
+    
+    failed = 0;
+    float err = 0.0f;
+    for (int i = 0; i < cgto_n; i++){
+        for (int j = 0; j < cgto_n; j++){
+            err+=fabsf(fabsf(Evec[EPOS[j]+ i*cgto_n])-fabsf(Evec_test[j+ i*cgto_n]));
+            printf("%f ",fabsf(fabsf(Evec[EPOS[j]+ i*cgto_n])-fabsf(Evec_test[j+ i*cgto_n])));
+            if(fabsf(fabsf(Evec[EPOS[j]+ i*cgto_n])-fabsf(Evec_test[j+ i*cgto_n]))>EPSILON){
+                failed = 1;
+            }
+        }
+        printf("\n");
+    }
+    printf("Error: %f\n",err);
+    err =.0f;
+    
+    printf("Eigenvector scaling:\n");
+
+    for (int i = 0; i < cgto_n; i++){
+        for (int j = 0; j < cgto_n; j++){
+            if (Evec_test[j+ i*cgto_n] != 0.0){
+            printf("%f ",Evec[EPOS[j]+i*cgto_n] / Evec_test[j+ i*cgto_n] );
+            }
+            else{
+            printf("%f ",0.0f);
+            }
+        }
+        printf("\n");
+    }
+    printf("-----------MSqrt------------------\n");
+    float Ssqrt[cgto_n *cgto_n];
+    float Sout[cgto_n *cgto_n];
+    for (int i = 0; i < cgto_n; i++){
+        for (int j = 0; j < cgto_n; j++){
+            Ssqrt[j+i*cgto_n] = S[j+i*cgto_n];
+        }
+    }
+
+    matrix_sqrt_inplace(Ssqrt,cgto_n);
+    matrix_dot(Ssqrt,Ssqrt,cgto_n,Sout);
+    if(!compare_matrices(Sout,S,cgto_n)){
+        printf("OK\n");
+    }
+    //for (int i = 0; i < cgto_n; i++){
+    //    for (int j = 0; j < cgto_n; j++){
+    //        printf("%f ",Ssqrt[j+i*cgto_n]);
+    //        //printf("%f ",S[j+i*cgto_n]- Sout[j+i*cgto_n]);
+    //    }
+    //    printf("\n");
+    //}
     return 0;
 };

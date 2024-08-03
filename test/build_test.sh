@@ -1,1 +1,1 @@
-clang -Os -Wall  -I.  -L. -lm -o out/test.o  ../hf/functions.c ../hf/primitives.c ../hf/integrals_naive.c tests.c
+clang -Os -Wall -D MY_TESTS=1 -I.  -L. -lm -o out/test.o  ../hf/functions.c ../hf/primitives.c ../hf/integrals_naive.c ../hf/rhf.c tests.c

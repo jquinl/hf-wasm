@@ -5,6 +5,7 @@
 #include <raylib.h>
 #include "hf/primitives.h"
 #include "hf/integrals_naive.h"
+#include "hf/functions.h"
 
 #define WIDTH  600
 #define HEIGHT 600
