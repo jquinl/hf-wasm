@@ -1,12 +1,11 @@
 #include "functions.h"
 #include <stdio.h>
+#include <float.h>
+#include "utils.h"
 #define ITMAX 100
 #define EPS 3.0e-7
 #define FPMIN 1e-30 //has to be small but not FLP_MIN
 
-static float sqrarg;
-#define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
-#define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
 void gcf(float *gammcf, float a, float x, float *gln){
     int i;
@@ -53,7 +52,7 @@ void gser(float *gamser, float a, float x, float *gln){
 }
 
 float  gamma_inc(float a, float x){
-    //From Numerical recipes in C 2nd ed http://s3.amazonaws.com/nrbook.com/book_C210.html
+    //From Numerical recipes in C 2nd ed 
     //Its the gamma function referred as Q(a,x) in numerical recipes not P(a,x)
     if (x < 0.0 || a <= 0.0) printf("Invalid arguments in routine gammq");
     float gamser,gammcf,gln;
@@ -96,13 +95,23 @@ void matrix_dot(const float * M, const float * M2, const int N, float * Mout){
             Mout[j + i*N] = a;
         }
     }
-    
 }
-
-int lu_decomp_inplace(float * A, int N, int * P){
+void matrix_dotd(const double * M, const double * M2, const int N, double * Mout){
+    for (int i = 0; i < N; i++){
+        for (int j = 0; j < N; j++){
+            Mout[j + i*N] = 0.0;
+            for (int k = 0; k < N; k++){
+                Mout[j + i*N]+= M[k + i*N] * M2[j + k*N];
+            }
+            //Mout[j + i*N] = a;
+        }
+    }
+}
+#ifdef MY_TESTS
+int lu_decomp_inplace(float * A, int N, int * P,float * V){
+    //V[N]
     //returns int, 0 failed 1 pair number of row exchanges -1 odd number of row exc.
     //Numerical recipes in C
-    float V[N];
     int d = 1;
     for (int i=0 ; i<N; i++) {
         float big=0.0;
@@ -182,9 +191,15 @@ void lu_bcksubs(float * LU,int * IDX,int N ,float * B){
     }
     
 }
-void matrix_invert(const float * M, const int N, float * Minv){
-    float LU[N*N];
-    int  IDX[N];
+void matrix_invert(const float * M, const int N, float * Minv,float * TMP,int * ITEMP){
+    //TEMP total [N*N+N]
+    //ITEMP total [N]
+    //LU[N*N];
+    //IDX[N];
+    float * LU = TMP;
+    float * TMP2= TMP + N*N;
+    int *IDX  = ITEMP;
+
     //memcpy(LU,M,N*N*sizeof(float));
     for (int i = 0; i < N; i++){
         for (int j = 0; j < N; j++){
@@ -192,7 +207,7 @@ void matrix_invert(const float * M, const int N, float * Minv){
         }
     }
 
-    if(lu_decomp_inplace(LU,N,IDX) == 0){
+    if(lu_decomp_inplace(LU,N,IDX,TMP2) == 0){
         printf("Error in LU Decomposition");
     }
     for (int i = 0; i < N; i++){
@@ -207,204 +222,228 @@ void matrix_invert(const float * M, const int N, float * Minv){
         Ms+=N;
     }
 }
+#endif
 
-void householder_reduction(float * A, int N, float * D,float * E){
-    for (int i = N-1; i > 0; i--){
-        int l = i-1;
-        float h =0.0f, scale = 0.0f;
-
-        if(l > 0){
-            for (int k = 0; k < i; k++){
-                scale+=fabs(A[k+i*N]);
-            }
-            if(scale == 0.0){
-                E[i]= A[l+i*N];
-            }else{
-                for (int k = 0; k < i; k++){
-                    A[k+i*N] /=scale;
-                    h+=A[k+i*N]*A[k+i*N];
-                }
-                float f = A[l+i*N];
-                float g = (f>= 0.0? -sqrtf(h) : sqrtf(h));
-                E[i] = scale * g;
-                h -= f*g;
-                A[l+i*N] = f-g;
-                f =0.0f;
-                for (int j = 0; j < i; j++){
-                    A[i+j*N] = A[j+i*N]/h;
-                    g = 0.0f;
-                    for (int k = 0; k < j+1; k++){
-                        g+= A[k+j*N] * A[k+i*N];
-                    }
-                    for (int k = j+1; k < i; k++){
-                        g+= A[j+k*N] * A[k+i*N];
-                    }
-                    E[j] = g/h;
-                    f+=E[j]* A[j+i*N];
-                }
-                float hh = f/(h+h);
-                for (int j = 0; j < i; j++){
-                    f = A[j+i*N];
-                    E[j]=g=E[j]-hh*f;
-                    for (int k = 0; k < j+1; k++){
-                        A[k+j*N] -= f*E[k]+g*A[k+i*N]; 
-                    }
-                }
-            }
-        
-        }else{
-            E[i] = A[l+i*N];
-        }
-        D[i] = h;
-    }
-    D[0]=0.0f;
-    E[0]=0.0f;
+void householder_reduction(const float *A, int N, float *D, float *E,float *Z){
+    //Description:
+    //J. H. Wilkinson. (1962-1963). Householder's method for symmetric matrices. , 4(1), 354–361. doi:10.1007/bf01386332 
+    //Implementation:
+    //Numerical recipes in C 2nd ed
     for (int i = 0; i < N; i++){
-        //int l = i-1 ¯\_(ツ)_/¯ ;
-        if(D[i]!=0.0){
-            for (int j = 0; j < i; j++){
-                float g = 0.0f;
-                for (int k = 0; k < i; k++){
-                    g+=A[k+i*N] * A[j+k*N];
-                }
-                for (int k = 0; k < i; k++){
-                    A[j+k*N] -= g* A[i+k*N];
-                }
-            }
-        }
-        D[i] = A[i+i*N];
-        A[i+i*N] = 1.0f;
-        for (int j = 0; j < i; j++){
-            A[i+j*N] = A[j+i*N] = 0.0f;
+        for (int j = 0; j < N; j++){
+           Z[i+j*N]= A[i+j*N];
         }
     }
+
+	for (int i = N - 1; i > 0; i--) {
+		int l = i - 1;
+        float h = 0.0f;
+        float scale = 0.0f;
+		if (l > 0) {
+			for (int k = 0; k < i; k++) {
+				scale += fabsf(Z[k+i*N]); 
+			}
+			if (scale <FLT_EPSILON) {
+				E[i] = Z[l+i*N]; 
+			} else {
+				for (int k = 0; k < i; k++) {
+					Z[k+i*N] /= scale; 
+					h += Z[k+i*N]*Z[k+i*N];
+				}
+				float f =Z[l+i*N]; 
+				float g = (f >= 0.0 ? -sqrtf(h) : sqrtf(h));
+				E[i] = scale * g;
+				h -= f * g;
+				Z[l+i*N] = f - g; 
+				f = 0.0f;
+				for (int j = 0; j < i; j++) {
+                    Z[i+j*N] = Z[j+i*N]/ h;
+					g = 0.0f;
+					for (int k = 0; k < j + 1; k++)
+                        g+=Z[k+j*N] * Z[k+i*N];
+					for (int k = j + 1; k < i; k++)
+                        g+= Z[j+k*N] * Z[k+i*N]; 
+					E[j] = g / h;
+					f += E[j]  * Z[j+i*N]; 
+				}
+				float hh = f / (h + h);
+				for (int j = 0; j < i; j++) {
+					f = Z[j+i*N];
+					E[j] = g = E[j] - hh * f;
+					for (int k = 0; k < j + 1; k++) {
+                        Z[k+j*N]-=(f * E[k] + g * Z[k+i*N]);
+					}
+				}
+			}
+		} else {
+			E[i] = Z[l+i*N];
+		}
+		D[i] = h;
+	}
+
+	D[0] = 0.0f;
+	E[0] = 0.0f;
+	for (int i = 0; i < N; i++) {
+		if (fabsf(D[i]) > FLT_EPSILON) {
+			for (int j = 0; j < i; j++) {
+				float g = 0.0f;
+				for (int k = 0; k < i; k++) {
+					g += Z[k+i*N] * Z[j+k*N];
+				}
+				for (int k = 0; k < i; k++) {
+					Z[j+k*N] -= g * Z[i+k*N];
+				}
+			}
+		}
+		D[i] = Z[i+i*N];
+		Z[i+i*N]= 1.0f;
+		for (int j = 0; j < i; j++) {
+            Z[i+j*N] = Z[j+i*N] = 0.0f;
+		}
+	}
 }
 
-float pythag(float a, float b)
-{
-	float absa,absb;
-	absa=fabs(a);
-	absb=fabs(b);
-	if (absa > absb) return absa*sqrt(1.0+SQR(absb/absa));
-	else return (absb == 0.0 ? 0.0 : absb*sqrt(1.0+SQR(absa/absb)));
-}
-
-int tridiagonal_qli(float * D, float * E, int N, float * Z){
+int tridiagonal_ql2(float * D, float* E, int N, float * Z){
+    //Description/Impl:
+    //Hilary Bowdler; R. S. Martin; C. Reinsch; J. H. Wilkinson. (1968). TheQRandQLalgorithms for symmetric matrices. , 11(4), 293–306. doi:10.1007/bf02166681
     //returns 1 if fails
-    int m,l;
-	for (int i=1; i < N; i++){
-        E[i-1]=E[i];
-    }
-    E[N-1] =0.0f;
-    for (l = 0; l < N; l++){
-        int iter = 0;
-        do{
-            for (m = l; m < N-1; m++){
-               //This seems kindof unstable 
-               //seems to more or less scale the vecs equally so ok, some small values get scaled a lot but not the full eigenvec :(
-               float dd=fabs(D[m])+fabs(D[m+1]);
-               if ((float)(fabs(E[m])+dd) == dd){
-                   break; //omg
-               }
-               //if(fabsf(E[m]/dd) < 5e-11) break;
-            }
-            if(m != l){
-                if(iter++ == 30) return 1;
-                float g = (D[l+1]-D[l])/(2.0f*E[l]);
-                float r = pythag(g,1.0f);
-                g = D[m]-D[l]+E[l] / (g+SIGN(r,g));
-                float s=1.0f,c=1.0f;
-                float p=0.0f;
-                int i = m-1;
-                for (; i > l-1; i--){
-                    float f = s * E[i];
-                    float b = c * E[i];
-                    r = pythag(f,g);
-                    E[i+1] = r;
-                    if(r == 0.0){
-                        D[i+1] -=p;
-                        E[m] = 0.0f;
-                        break;
-                    }
-                    s = f/r;
-                    c = g/r;
-                    g = D[i+1]-p;
-                    r = (D[i]-g) * s + 2.0f * c * b;
-                    p= s*r;
-                    D[i+1] = g+p;
-                    g = c*r-b;
-                    for (int k = 0; k < N; k++){
-                        f = Z[i+1+ k*N];
-                        Z[i+1 + k*N] = s*Z[i + k*N] + c * f;
-                        Z[i + k*N] = c*Z[i + k*N] - s*f;
-                    }
+
+    const float macheps = FLT_EPSILON;
+
+    float b,f;
+	for (int i=1;i<N;i++) E[i-1]=E[i];
+    E[N-1]= b = f =0.0;
+
+	for (int l=0;l<N;l++) {
+        int j = 0;
+        float h = macheps * (fabsf(D[l])+fabsf(E[l]));
+        if(b<h) b=h;
+        int m = l;
+        for (; m < N; m++){
+            if(fabsf(E[m])<=b) break;
+        }
+        if(m != l){
+            do{
+                if(j++ == 30) return 1;
+                //shift
+                float p = (D[l+1]-D[l])/ (2.0f*E[l]);
+                float r =sqrtf(p*p+1.0f);
+                h = D[l]-E[l]/(p<0.0f ? p-r : p+r);
+                for (int i = l; i < N; i++){
+                    D[i] -=h;
                 }
-                if(r == 0.0 && i>l-1) continue;
-                D[l] -=p;
-                E[l] = g;
-                E[m] = 0.0f;
+                f+=h;
+                //Ql transformation
+                p = D[m]; 
+                float c = 1.0f;
+                float s = 0.0f;
+                for (int i = m-1; i > l-1; i--){
+                    float g = c*E[i];
+                    float h = c*p;
+                    if(fabsf(p)>= fabsf(E[i])){
+                        c = E[i]/p;
+                        r = sqrtf(c*c+1.0f);
+                        E[i+1] = s*p*r;
+                        s = c/r;
+                        c= 1.0f/r;
+                    }else{
+                        c = p/E[i];
+                        r = sqrtf(c*c+1.0f);
+                        E[i+1] = s*E[i]*r;
+                        s=1.0f/r;
+                        c/=r;
+                    }
+                    p=c*D[i]-s*g;
+                    D[i+1]= h+s*(c*g+s*D[i]);
+                    for (int k = 0; k < N; k++){
+                        h = Z[i+1+k*N];
+                        Z[i+1+k*N] = s* Z[i+k*N]+c*h;
+                        Z[i+k*N] = c* Z[i+k*N]-s*h;
+                    }  
+                }
+                E[l] = s*p;
+                D[l] = c*p;
+            }while (fabsf(E[l])>b);
+        }
+        D[l] +=f; 
+    }
+    //Sort eigvect/values in ascending order for HF
+    for (int i = 0; i < N-1; i++){
+        int k = i;
+        float p = D[k];
+        for (int j = i+1; j < N; j++){
+            if(D[j]<p){
+                k = j; 
+                p = D[j];
             }
-        }while (m != l);
+        }
+        if(k!= i){
+            D[k] = D[i];
+            D[i] = p;
+            for (int j = 0; j < N; j++){
+                p = Z[i+j*N];
+                Z[i+j*N] = Z[k+j*N];
+                Z[k+j*N] = p;
+            }
+        }
     }
     return 0;
 }
 
-void matrix_eigval(const float * M, const int N, float * Mevec,float * Meval){
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            Mevec[j+i*N] = M[j+i*N];
-        }
-    }
-    float E[N];
-    householder_reduction(Mevec,N,Meval,E);
-    if(tridiagonal_qli(Meval,E,N,Mevec)){
+
+void matrix_eigval(const float * M, const int N, float * Mevec,float * Meval,float * TMP ){
+ 
+    float * E = TMP;
+    householder_reduction(M,N,Meval,E,Mevec);
+
+    if(tridiagonal_ql2(Meval,E,N,Mevec)){
         printf("Failed producing eigenvalues\n");
     }
-    
 }
 
-void matrix_diag(const float * M, const int N, float * Mdiag){
-    float Meval[N];
-    matrix_eigval(M,N,Mdiag,Meval);
+void matrix_diag(const float * M, const int N, float * Mdiag,float *TMP){
+    float * Meval = TMP;
+    float * TMPT = TMP+N;
+    matrix_eigval(M,N,Mdiag,Meval,TMPT);
     for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            if( i == j){
-                Mdiag[j+i*N] = Meval[i];
-            }
-            else{
-                Mdiag[j+i*N] = 0.0f;
-            }
+        for (int j = 0; j < i; j++){
+            Mdiag[j+i*N] = 0.0f;
+            Mdiag[i+j*N] = 0.0f;
         }
+        Mdiag[i+i*N] = Meval[i];
     }
 }
 
-void matrix_sqrt_inplace(float * M,int N){
-    float Z[N*N];
-    float ZT[N*N];
-    float D[N*N];
-    float DZT[N*N];
-    //M = Z⋅D⋅ZT
-    matrix_eigval(M,N,Z,D);
-    //copy values in top row to diagonal
+void matrix_invsqrt(const float * M,int N,float * Minvsqrt,float * TMP){
+    //TMP must be at least [3* N *N]
+    float * Z = TMP;
+    float * ZT = TMP + N*N;
+    float * DZT = TMP + 2*N*N;
+    //M = Z⋅D⋅ZT D= Minvsqrt
+    matrix_eigval(M,N,Z,Minvsqrt,ZT);//TMP=ZT Here N * N+ 2*N < 3*N*N (N>1)
+
     
+    //copy values in top row to diagonal and 1/sqrtD
     for (int i = 0; i < N; i++){
-        D[i+i*N] = D[i];
+        Minvsqrt[i+i*N] = 1.f/sqrtf(Minvsqrt[i]);
     }
+   
     //Zero the rest
     for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++)
-            if(i!=j) D[j+i*N] = 0.0f;
-    }
-    //sqrtD
-    for (int i = 0; i < N; i++){
-        D[i+i*N] = sqrtf(D[i+i*N]);
+        for (int j = 0; j < i; j++){
+            Minvsqrt[j+i*N] = 0.0f;
+            Minvsqrt[i+j*N] = 0.0f;
+        }
     }
     //zT
     for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
+        for (int j = i; j < N; j++){
             ZT[j+i*N] = Z[i+j*N];
+            ZT[i+j*N] = Z[j+i*N];
         }
     }
-    matrix_dot(D,ZT,N,DZT);
-    matrix_dot(Z,DZT,N,M);
+
+    matrix_dot(Minvsqrt,ZT,N,DZT);
+    matrix_dot(Z,DZT,N,Minvsqrt);
+
 }

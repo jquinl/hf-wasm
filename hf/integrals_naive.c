@@ -207,6 +207,7 @@ void gto_electron_nuclear(cgto * cgtos, int cgto_num, atoms * atom_array, int at
         
     for (int i = 0; i < cgto_num; i++){
         for (int j = 0; j < cgto_num; j++){
+            V[j + cgto_num * i] = 0.0f;
             for (int  a = 0; a < atom_num; a++)
             {
                 float v = 0.0f;

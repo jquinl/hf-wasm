@@ -12,15 +12,16 @@ float boys(int fact,float x);
 
     
 void matrix_dot(const float * M, const float * M2, const int N, float * Mout);
-void matrix_invert(const float * M, const int N, float * Minv);
-void matrix_sqrt_inplace(float * M,const int N);
-void matrix_diag(const float * M, const int N, float * Mdiag);
-void matrix_eigval(const float * M, const int N, float * Mevec,float * Meval);
+void matrix_dotd(const double * M, const double * M2, const int N, double * Mout);
+void matrix_invsqrt(const float * M,const int N,float * Minvsqrt,float * TMP );
+void matrix_diag(const float * M, const int N, float * Mdiag,float * TMP );
+void matrix_eigval(const float * M, const int N, float * Mevec,float * Meval,float * TMP );
 
 #ifdef MY_TESTS
-int lu_decomp_inplace(float * A, int N, int * P);
-void householder_reduction(float * A, int N, float * D,float * E);
-int tridiagonal_qli(float * D, float * E, int N, float * Z);
+void matrix_invert(const float * M, const int N, float * Minv,float * TMP ,int * ITEMP);
+int lu_decomp_inplace(float * A, int N, int * P,float * V);
+void householder_reduction(const float * A,int N,float * D,float * E,float * Z);
+void householder_reductiond(const double * A,int N,double * D,double * E,double * Z,double * TMP);
+int tridiagonal_ql2(float * D, float* E, int N, float * Z);
 #endif
-
 #endif
