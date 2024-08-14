@@ -1,45 +1,140 @@
 <!doctype html>
 <html lang="EN-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <title>hartree-fock wasm</title>
+        <title>hartree-fock wasm</title>
 
-    <meta name="title" content="Hartree-Fock wasm">
-    <meta name="description" content="Hartree-Fock wasm">
-    <meta name="keywords" content="raylib,quantum-chemistry,hartree-fock,wasm">
-    <meta name="viewport" content="width=device-width">
+        <meta name="title" content="Hartree-Fock wasm" />
+        <meta name="description" content="Hartree-Fock wasm" />
+        <meta
+            name="keywords"
+            content="raylib,quantum-chemistry,hartree-fock,wasm"
+        />
+        <meta name="viewport" content="width=device-width" />
 
-    <style>
-        body { 
-          margin: 0px; 
-          overflow: hidden; 
-          background-color: black;
-        }
-        canvas {
-            padding-left: 0;
-            padding-right: 0;
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
-        }
-        canvas.emscripten { border: 1px ; background-color: black;}
-    </style>
-
+        <style>
+            :root {
+                --main-bg-color: #d3d9d4;
+                --obj-bg-color: #748d92;
+                --obj-shadow: #124e66;
+                --text-color: #000000;
+                --text-color2: #cccccc;
+            }
+            html {
+                font-family: "Courier New", Courier, monospace;
+            }
+            body {
+                margin: 0;
+                overflow: hidden;
+                background-color: var(--main-bg-color);
+            }
+            canvas {
+                padding-left: 0;
+                padding-right: 0;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 5px;
+                display: block;
+            }
+            a {
+                text-decoration: none;
+            }
+            a:link,
+            a:visited {
+                color: var(--text-color);
+            }
+            a:hover {
+                color: var(--text-color);
+            }
+            canvas.emscripten {
+                border: 0px;
+                border-radius: 5px;
+                box-shadow: 5px 5px var(--obj-shadow);
+                background-color: #000;
+            }
+            .top {
+                background-color: var(--obj-bg-color);
+                border: 1px solid var(--obj-shadow);
+                border-radius: 5px;
+                border-top-left-radius: 0px;
+                border-top-right-radius: 0px;
+                padding: 20px;
+                margin: 0px;
+                text-align: center;
+                font-weight: 200;
+            }
+            .box-container {
+                max-width: fit-content;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .box {
+                text-align: center;
+                position: relative;
+                top: 0px;
+                left: 0px;
+                width: 50px;
+                height: 50px;
+                background-color: var(--obj-bg-color);
+                border-radius: 5px;
+                box-shadow: 5px 5px var(--obj-shadow);
+            }
+            .box:hover {
+                top: 2px;
+                left: 2px;
+                box-shadow: 1px 1px var(--obj-shadow);
+            }
+            .box-text {
+                position: relative;
+                width: 100%;
+                top: 5%;
+                height: 90%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                font-weight: 150;
+            }
+        </style>
     </head>
-    <a href="../index.html">Go back</a>
+
     <body>
-        <canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas>
-        <p id="output" />
-        <script>
-            var Module = {
-                canvas: (function() {
-                    var canvas = document.getElementById('canvas');
-                    return canvas;
-                })()
-            };
-        </script>
-        {{{ SCRIPT }}}
+        <div class="top">
+            <h2>
+               hf-wasm
+            </h2>
+            <p>
+                Move the Hydrogen atoms around and run a Restricted Hartree-Fock calculation!
+            </p>
+        </div>
+        <div>
+            <canvas
+                class="emscripten"
+                id="canvas"
+                oncontextmenu="event.preventDefault()"
+                tabindex="-1"
+            ></canvas>
+            <p id="output" />
+            <script>
+                var Module = {
+                    canvas: (function () {
+                        var canvas = document.getElementById("canvas");
+                        return canvas;
+                    })(),
+                };
+            </script>
+            {{{ SCRIPT }}}
+        </div>
+        <div class="box-container">
+            <a href=https://github.com/jquinl/hf-wasm>
+                <div class="box">
+                    <div class="box-text">
+                    Code
+                    </div>
+                </div>
+            </a>
+        </div>
     </body>
 </html>
