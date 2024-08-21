@@ -1,52 +1,59 @@
 <!doctype html>
 <html lang="EN-us">
-  <head>
-    <meta charset=utf-8>
-        <meta content="text/html; charset=utf-8"http-equiv=Content-Type>
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
         <title>hartree-fock wasm</title>
-        <meta content="Hartree-Fock wasm"name=title>
-        <meta content="Hartree-Fock wasm"name=description>
-        <meta content=raylib,quantum-chemistry,hartree-fock,wasm name=keywords>
-        <meta content="width=device-width"name=viewport>
+
+        <meta name="title" content="Hartree-Fock wasm" />
+        <meta name="description" content="Hartree-Fock wasm" />
+        <meta
+            name="keywords"
+            content="raylib,quantum-chemistry,hartree-fock,wasm"
+        />
+        <meta name="viewport" content="width=device-width" />
+
         <style>
-            :root{
+            :root {
                 --main-bg-color: #d3d9d4;
                 --obj-bg-color: #748d92;
                 --obj-shadow: #124e66;
-                --text-color : #000000;
-                --text-color2 : #cccccc;
+                --text-color: #000000;
+                --text-color2: #cccccc;
             }
-            html{
+            html {
                 font-family: "Courier New", Courier, monospace;
             }
-            body{
-                margin:0;
-                overflow:hidden;
-                background-color:var(--main-bg-color);
-                min-height: 100vh;
+            body {
+                margin: 0;
+                overflow: hidden;
+                background-color: var(--main-bg-color);
             }
-            canvas{
-                padding-left:0;
-                padding-right:0;
-                margin-left:auto;
-                margin-right:auto;
-                margin-top:5px;
-                display:block
+            canvas {
+                padding-left: 0;
+                padding-right: 0;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 5px;
+                display: block;
             }
             a {
                 text-decoration: none;
             }
-            a:link,a:visited {
+            a:link,
+            a:visited {
                 color: var(--text-color);
             }
             a:hover {
                 color: var(--text-color);
             }
-            canvas.emscripten{
-                border:0px;
+            canvas.emscripten {
+                border: 0px;
                 border-radius: 5px;
                 box-shadow: 5px 5px var(--obj-shadow);
-                background-color:#000
+                background-color: #000;
             }
             .top {
                 background-color: var(--obj-bg-color);
@@ -80,7 +87,7 @@
                 left: 2px;
                 box-shadow: 1px 1px var(--obj-shadow);
             }
-            .box-text{
+            .box-text {
                 position: relative;
                 width: 100%;
                 top: 5%;
@@ -114,12 +121,22 @@
             </p>
         </div>
         <div>
-            <canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1>
-            </canvas><p id=output/>
-            <script>var Module={
-              canvas:document.getElementById("canvas")}
+            <canvas
+                class="emscripten"
+                id="canvas"
+                oncontextmenu="event.preventDefault()"
+                tabindex="-1"
+            ></canvas>
+            <p id="output" />
+            <script>
+                var Module = {
+                    canvas: (function () {
+                        var canvas = document.getElementById("canvas");
+                        return canvas;
+                    })(),
+                };
             </script>
-        {{{ SCRIPT }}}
+            {{{ SCRIPT }}}
         </div>
         <div class="box-container">
             <a href=https://github.com/jquinl/hf-wasm>

@@ -36,8 +36,8 @@ The GUI is made using [Raylib](https://www.raylib.com/)
 
 ### Tests
 ###### RHF tested against values generated with 
-<a id="6">[4]</a> [Q. Sun, X. Zhang, S. Banerjee, P. Bao, M. Barbry, N. S. Blunt, N. A. Bogdanov, G. H. Booth, J. Chen, Zhi-Hao Cui, J. J. Eriksen, Y. Gao, S. Guo, J. Hermann, M. R. Hermes, K. Koh, P. Koval, S. Lehtola, Z. Li, J. Liu, N. Mardirossian, J. D. McClain, M. Motta, B. Mussard, H. Q. Pham, A. Pulkin, W. Purwanto, P. J. Robinson, E. Ronca, E. R. Sayfutyarova, M. Scheurer, H. F. Schurkus, J. E. T. Smith, C. Sun, Shi-Ning Sun, S. Upadhyay, L. K. Wagner, X. Wang, A. White, J. Daniel Whitfield, M. J. Williamson, S. Wouters, J. Yang, J. M. Yu, T. Zhu, T. C. Berkelbach, S. Sharma, A. Yu. Sokolov, G. Kin-Lic Chan; Recent developments in the PySCF program package. J. Chem. Phys. 2020; 153 (2): 024109. ](https://doi.org/10.1103/PhysRevB.105.245404)
+<a id="7">[7]</a> [Q. Sun, X. Zhang, S. Banerjee, P. Bao, M. Barbry, N. S. Blunt, N. A. Bogdanov, G. H. Booth, J. Chen, Zhi-Hao Cui, J. J. Eriksen, Y. Gao, S. Guo, J. Hermann, M. R. Hermes, K. Koh, P. Koval, S. Lehtola, Z. Li, J. Liu, N. Mardirossian, J. D. McClain, M. Motta, B. Mussard, H. Q. Pham, A. Pulkin, W. Purwanto, P. J. Robinson, E. Ronca, E. R. Sayfutyarova, M. Scheurer, H. F. Schurkus, J. E. T. Smith, C. Sun, Shi-Ning Sun, S. Upadhyay, L. K. Wagner, X. Wang, A. White, J. Daniel Whitfield, M. J. Williamson, S. Wouters, J. Yang, J. M. Yu, T. Zhu, T. C. Berkelbach, S. Sharma, A. Yu. Sokolov, G. Kin-Lic Chan; Recent developments in the PySCF program package. J. Chem. Phys. 2020; 153 (2): 024109. ](https://doi.org/10.1103/PhysRevB.105.245404)
 
 ###### Molecular orbitals tested against values generated with 
-<a id="7">[53]</a> [K. V. Murphy,  J. M. Turney, H. F. III Schaefer; Student-Friendly Guide to Molecular Integrals; J. Chem. Ed. 2018;95 (9); 1572-1578;](https://doi.org/10.1021/acs.jchemed.8b00255) (5th handout)
+<a id="8">[3]</a> [K. V. Murphy,  J. M. Turney, H. F. III Schaefer; Student-Friendly Guide to Molecular Integrals; J. Chem. Ed. 2018;95 (9); 1572-1578;](https://doi.org/10.1021/acs.jchemed.8b00255) (5th handout)
 
