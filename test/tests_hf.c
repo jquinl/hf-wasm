@@ -48,6 +48,7 @@ int main(){
         }
 
         float P[cgto_n * cgto_n];
+        float Pt[cgto_n * cgto_n];
         float TMP1[100*100];
         for (int i = 0; i < 100; i++)
             for (int j = 0; j < 100; j++)
@@ -56,12 +57,13 @@ int main(){
         restricted_hartree_fock_init(S,T,V,EE,cgto_n,n_elec,P,Sinv,TMP1);
         float de = 1000.0f;
         float olde = 1000.0f+rep;
-        while (fabsf(de)>1e-3){
+        while (fabsf(de)>1e-5){
             float ne = rep + restricted_hartree_fock_step(Sinv,T,V,EE,cgto_n,n_elec,P,TMP1);
             de = ne -olde;
             olde = ne;
         }
         float ee = restricted_hartree_fock_step(Sinv,T,V,EE,cgto_n,n_elec,P,TMP1);
+       
         printf("[%f,%f,%f,%f],\n",(float)d/50.0f,ee,rep,rep + ee);
     }
     return 0;

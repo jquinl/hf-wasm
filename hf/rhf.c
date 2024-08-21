@@ -45,7 +45,7 @@ void restricted_hartree_fock_init(const float * S,const float * T, const float *
     //zero out P 
     for (int i = 0; i < n_basis; i++){
         for (int j = 0; j < n_basis; j++){
-            P[j+i*n_basis] = 0.0f;
+            P[j+i*n_basis] = 1.0f; //All ones
         }
     }
     
